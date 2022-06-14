@@ -18,9 +18,12 @@
     "size": "size-limit",
     "analyze": "size-limit --why"
   },
-    "peerDependencies": {
+  "peerDependencies": {
     "@chakra-ui/react": ">=1.6.5",
-    "react": ">=16"
+    "react": ">=16",
+    "@lexical/html": "^0.3.3",
+    "@lexical/react": "^0.3.3",
+    "lexical": "^0.3.3"
   },
   "husky": {
     "hooks": {
@@ -39,18 +42,21 @@
   "size-limit": [
     {
       "path": "dist/wisipoo.cjs.production.min.js",
-      "limit": "10 KB"
+      "limit": "100 KB"
     },
     {
       "path": "dist/wisipoo.esm.js",
-      "limit": "10 KB"
+      "limit": "100 KB"
     }
   ],
   "devDependencies": {
     "@babel/core": "^7.14.8",
+    "@babel/preset-react": "^7.17.12",
     "@chakra-ui/react": "^1.7.4",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
+    "@lexical/html": "^0.3.3",
+    "@lexical/react": "^0.3.3",
     "@size-limit/preset-small-lib": "^5.0.1",
     "@types/react": "^17.0.14",
     "@types/react-dom": "^17.0.9",
@@ -58,6 +64,7 @@
     "babel-loader": "^8.2.2",
     "framer-motion": "^4",
     "husky": "^7.0.1",
+    "lexical": "^0.3.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-icons": "^4.3.1",
