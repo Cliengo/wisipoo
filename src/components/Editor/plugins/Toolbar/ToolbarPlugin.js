@@ -139,7 +139,8 @@ export default function ToolbarPlugin({ editorIsActive, websiteType }) {
     }
   };
 
-  const isFacebook = websiteType === 'facebook' || websiteType === 'whatsapp';
+  const isFacebook = websiteType === 'facebook';
+  const isWhatsapp = websiteType === 'whatsapp';
   const isInstagram = websiteType === 'instagram';
 
   return (
@@ -160,22 +161,26 @@ export default function ToolbarPlugin({ editorIsActive, websiteType }) {
       <Flex>
         {!isInstagram && (
           <>
-            <ActionButton
-              name="bold"
-              onClick={() => {
-                editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
-              }}
-              isActive={isBold}
-            />
-            <ActionButton
-              name="italic"
-              onClick={() => {
-                editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
-              }}
-              isActive={isItalic}
-            />
+            {!isFacebook && (
+              <>
+                <ActionButton
+                  name="bold"
+                  onClick={() => {
+                    editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
+                  }}
+                  isActive={isBold}
+                />
+                <ActionButton
+                  name="italic"
+                  onClick={() => {
+                    editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
+                  }}
+                  isActive={isItalic}
+                />
+              </>
+            )}
 
-            {!isFacebook && !isInstagram && (
+            {!isFacebook && !isInstagram && !isWhatsapp && (
               <ActionButton
                 name="underline"
                 onClick={() => {
@@ -203,7 +208,7 @@ export default function ToolbarPlugin({ editorIsActive, websiteType }) {
         )}
 
         <EmojiContainer />
-        {!isFacebook && !isInstagram && (
+        {!isFacebook && !isInstagram && !isWhatsapp && (
           <>
             <ActionButton name="link" onClick={insertLink} isActive={isLink} />
             {isLink &&
