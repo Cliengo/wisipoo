@@ -11,7 +11,7 @@ yarn add https://github.com/Cliengo/wisipoo.git @lexical/react@0.3.3 @lexical/ht
 ## css
 include this on your root html file
 ```html
-<link href="https://fonts.googleapis.com/css?family=Nunito:300,300i,400,600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Cliengo/wisipoo@latest/demo/src/App.css">
 ```
 
 ## Usage
