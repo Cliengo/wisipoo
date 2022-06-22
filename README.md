@@ -25,6 +25,7 @@ const toggleEditMode = () => setEditMode(!editMode);
 
 <Editor
     initialValue=""
+    placeholder="" // if initialValue !== "" it will show initialValue always
     onChange={(value) => console.log(value)} // value in html as string
     editMode={editMode}
     handleEditMode={toggleEditMode}
