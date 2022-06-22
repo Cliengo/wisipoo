@@ -20,8 +20,12 @@ import { InitialValuePlugin } from './plugins/InitialValuePlugin';
 import { Box, Text } from '@chakra-ui/react';
 import { Icon } from './utils/EditorIcon.component';
 
-function Placeholder() {
-  return <div className="editor-placeholder">Enter some rich text...</div>;
+function Placeholder({
+  placeholder
+}: {
+  placeholder?: string;
+}) {
+  return <div className="editor-placeholder">{placeholder || ''}</div>;
 }
 
 const editorConfig = {
@@ -80,6 +84,7 @@ export interface EditorProps {
   websiteType: 'website' | 'facebook' | 'whatsapp' | 'instagram';
   editMode: boolean;
   handleEditMode: (editMode: boolean) => void;
+  placeholder?: string;
 }
 
 export function Editor({
@@ -88,6 +93,7 @@ export function Editor({
   websiteType,
   editMode,
   handleEditMode,
+  placeholder
 }: EditorProps) {
   const isDescendant = function(parent: any, child: any) {
     let node = child.parentNode;
@@ -137,7 +143,7 @@ export function Editor({
         rounded="md"
         alignItems="center"
       >
-        <Text dangerouslySetInnerHTML={{ __html: initialValue || '' }} />
+        <Text dangerouslySetInnerHTML={{ __html: initialValue || placeholder || '' }} />
         <Icon
           name="edit"
           w="24px"
@@ -162,7 +168,7 @@ export function Editor({
         >
           <RichTextPlugin
             contentEditable={<ContentEditable className="editor-input" />}
-            placeholder={<Placeholder />}
+            placeholder={<Placeholder placeholder={placeholder} />}
           />
           <InitialValuePlugin value={initialValue || ''} />
           <LexicalOnChangePlugin
