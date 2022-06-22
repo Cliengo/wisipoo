@@ -5,7 +5,13 @@ A rich editor for the cliengo needs. No more, no less.
 ## Installation
 
 ```bash
-yarn add https://github.com/Cliengo/wisipoo.git @lexical/react@0.3.3 @lexical/html@0.3.3 lexial@0.3.3
+yarn add https://github.com/Cliengo/wisipoo.git @lexical/react@0.3.3 @lexical/html@0.3.3 lexical@0.3.3
+```
+
+## css
+include this on your root html file
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Cliengo/wisipoo@latest/demo/src/App.css">
 ```
 
 ## Usage
