@@ -62,12 +62,29 @@ function editorOnChange(
     const html = $generateHtmlFromNodes(editor);
     const parser = new DOMParser();
     const dom = parser.parseFromString(html, 'text/html');
-    dom.querySelectorAll('*').forEach(node => {
+    dom.querySelectorAll('*').forEach((nod) => {
+      let node = nod as HTMLElement;
+      // remove all data- attributes
+      node.removeAttribute('data-lexical-node-type');
+      node.removeAttribute('data-lexical-node-json');
+      node.removeAttribute('data-lexical-editor-key');
       // if node is anchor tag, add target blank
       if (node.tagName) {
         if (node.tagName.toLowerCase() === 'a') {
           node.setAttribute('target', '_blank');
         }
+      }
+      // wrap editor-text-italic class on em tag
+      if (node.classList.contains('editor-text-italic')) {
+        const em = document.createElement('em');
+        node.replaceWith(em);
+        em.appendChild(node);
+      }
+      // wrap editor-text-underline class on u tag
+      if (node.classList.contains('editor-text-underline')) {
+        const u = document.createElement('u');
+        node.replaceWith(u);
+        u.appendChild(node);
       }
     });
     onChange(dom.body.innerHTML);

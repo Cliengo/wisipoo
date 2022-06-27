@@ -21,9 +21,9 @@
   "peerDependencies": {
     "@chakra-ui/react": ">=1.6.5",
     "react": ">=16",
-    "@lexical/html": "^0.3.3",
-    "@lexical/react": "^0.3.3",
-    "lexical": "^0.3.3"
+    "@lexical/html": "^0.3.5",
+    "@lexical/react": "^0.3.5",
+    "lexical": "^0.3.5"
   },
   "husky": {
     "hooks": {
