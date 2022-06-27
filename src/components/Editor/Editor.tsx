@@ -63,10 +63,6 @@ function editorOnChange(
     const parser = new DOMParser();
     const dom = parser.parseFromString(html, 'text/html');
     dom.querySelectorAll('*').forEach(node => {
-      // remove all data- attributes
-      node.removeAttribute('data-lexical-node-type');
-      node.removeAttribute('data-lexical-node-json');
-      node.removeAttribute('data-lexical-editor-key');
       // if node is anchor tag, add target blank
       if (node.tagName) {
         if (node.tagName.toLowerCase() === 'a') {

@@ -23,9 +23,10 @@ function App() {
         <Editor
           handleEditMode={setEditMode}
           editMode={editMode}
-          initialValue={initialValue}
+          initialValue={"hola"}
           onChange={value => setInitialValue(value)}
           websiteType={websiteType}
+          placeholder="Write something..."
         />
       </Box>
       <Box
