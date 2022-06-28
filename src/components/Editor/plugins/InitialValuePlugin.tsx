@@ -13,7 +13,6 @@ export function InitialValuePlugin({ value }: { value: string }) {
       const dom = parser.parseFromString(value, 'text/html');
       // Once you have the DOM instance it's easy to generate LexicalNodes.
       const nodes = $generateNodesFromDOM(editor, dom);
-      console.log('nodes', nodes)
       // Select the root
       $getRoot().select();
     
