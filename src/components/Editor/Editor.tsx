@@ -20,11 +20,7 @@ import { InitialValuePlugin } from './plugins/InitialValuePlugin';
 import { Box, Text } from '@chakra-ui/react';
 import { Icon } from './utils/EditorIcon.component';
 
-function Placeholder({
-  placeholder
-}: {
-  placeholder?: string;
-}) {
+function Placeholder({ placeholder }: { placeholder?: string }) {
   return <div className="editor-placeholder">{placeholder || ''}</div>;
 }
 
@@ -55,14 +51,15 @@ const editorConfig = {
 function editorOnChange(
   editorState: EditorState,
   editor: LexicalEditor,
-  onChange: (html: string) => void
+  onChange: (html: string) => void,
+  websiteType: 'website' | 'facebook' | 'whatsapp' | 'instagram'
 ) {
   editorState.toJSON();
   editor.update(() => {
     const html = $generateHtmlFromNodes(editor);
     const parser = new DOMParser();
     const dom = parser.parseFromString(html, 'text/html');
-    dom.querySelectorAll('*').forEach((nod) => {
+    dom.querySelectorAll('*').forEach(nod => {
       let node = nod as HTMLElement;
       // remove all data- attributes
       node.removeAttribute('data-lexical-node-type');
@@ -71,7 +68,14 @@ function editorOnChange(
       // if node is anchor tag, add target blank
       if (node.tagName) {
         if (node.tagName.toLowerCase() === 'a') {
-          node.setAttribute('target', '_blank');
+          if (websiteType === 'website') {
+            node.setAttribute('target', '_blank');
+          } else {
+            // remove tag an leave only the text link
+            const linkTextNode = document.createElement('span');
+            linkTextNode.innerText = node.getAttribute('href') || '';
+            node.replaceWith(linkTextNode)
+          }
         }
       }
       // wrap editor-text-italic class on em tag
@@ -106,7 +110,7 @@ export function Editor({
   websiteType,
   editMode,
   handleEditMode,
-  placeholder
+  placeholder,
 }: EditorProps) {
   const isDescendant = function(parent: any, child: any) {
     let node = child.parentNode;
@@ -156,7 +160,11 @@ export function Editor({
         rounded="md"
         alignItems="center"
       >
-        <Text dangerouslySetInnerHTML={{ __html: initialValue || placeholder || '' }} />
+        <Text
+          dangerouslySetInnerHTML={{
+            __html: initialValue || placeholder || '',
+          }}
+        />
         <Icon
           name="edit"
           w="24px"
@@ -186,14 +194,18 @@ export function Editor({
           <InitialValuePlugin value={initialValue || ''} />
           <LexicalOnChangePlugin
             onChange={(editorState, editor) =>
-              editorOnChange(editorState, editor, onChange)
+              editorOnChange(editorState, editor, onChange, websiteType)
             }
             ignoreInitialChange
           />
           <HistoryPlugin />
           <ListPlugin />
-          <LinkPlugin />
-          <AutoLinkPlugin />
+          {websiteType === 'website' && (
+            <>
+              <LinkPlugin />
+              <AutoLinkPlugin />
+            </>
+          )}
         </Box>
         <ToolbarPlugin editorIsActive={true} websiteType={websiteType} />
       </div>
