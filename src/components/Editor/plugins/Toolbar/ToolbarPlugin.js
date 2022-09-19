@@ -28,7 +28,7 @@ import { getSelectedNode } from './utils/getSelectedNode';
 import { FloatingLinkEditor } from './FloatingLinkEditor.component';
 import { EmojiContainer } from './EmojiContainer.component';
 
-export default function ToolbarPlugin({ editorIsActive, websiteType }) {
+export default function ToolbarPlugin({ embeddedToolbar, hideUndoButtons, hideEmojis, borderless, websiteType }) {
   const [editor] = useLexicalComposerContext();
   const toolbarRef = useRef(null);
   const [canUndo, setCanUndo] = useState(false);
@@ -147,16 +147,28 @@ export default function ToolbarPlugin({ editorIsActive, websiteType }) {
     <chakra.div
       id="toolbar"
       transition="all .4s ease"
-      bg={editorIsActive ? 'gray.100' : 'white'}
-      shadow={editorIsActive ? 'md' : 'none'}
       display="flex"
       justifyContent="space-between"
-      border="1px solid"
-      borderColor="gray.200"
       ref={toolbarRef}
       p={1}
-      borderRadius="md"
-      borderTopRadius="none"
+      {...!embeddedToolbar ?
+        {
+          bg: 'gray.100',
+          shadow: 'md'
+        } :
+        {
+          bg: 'white',
+          shadow: 'none'
+        }
+      }
+      {...!borderless &&
+        {
+          border: "1px solid",
+          borderColor:"gray.200",
+          borderRadius:"md",
+          borderTopRadius:"none"
+        }
+      }
     >
       <Flex>
         {!isInstagram && (
@@ -207,7 +219,7 @@ export default function ToolbarPlugin({ editorIsActive, websiteType }) {
           </>
         )}
 
-        <EmojiContainer />
+        {!hideEmojis && <EmojiContainer />}
         {!isFacebook && !isInstagram && !isWhatsapp && (
           <>
             <ActionButton name="link" onClick={insertLink} isActive={isLink} />
@@ -220,6 +232,7 @@ export default function ToolbarPlugin({ editorIsActive, websiteType }) {
         )}
       </Flex>
 
+      {!hideUndoButtons ? 
       <HStack spacing={2}>
         <ActionButton
           name="undo"
@@ -237,6 +250,7 @@ export default function ToolbarPlugin({ editorIsActive, websiteType }) {
           isDisabled={!canRedo}
         />
       </HStack>
+      : null}
     </chakra.div>
   );
 }

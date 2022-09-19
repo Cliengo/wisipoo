@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import ExampleTheme from './theme/default';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import ToolbarPlugin from './plugins/Toolbar/ToolbarPlugin';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
 import { ListItemNode, ListNode } from '@lexical/list';
@@ -13,12 +12,18 @@ import { AutoLinkNode, LinkNode } from '@lexical/link';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { OnChangePlugin as LexicalOnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
-import AutoLinkPlugin from './plugins/AutoLinkPlugin';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import { EditorState, LexicalEditor } from 'lexical';
 import { InitialValuePlugin } from './plugins/InitialValuePlugin';
 import { Box, Text } from '@chakra-ui/react';
 import { Icon } from './utils/EditorIcon.component';
+import { AddContentToEditorType } from './plugins/InsertContentMethodPlugin';
+import {
+  ToolbarPlugin,
+  AutoLinkPlugin,
+  InsertContentMethodPlugin,
+  OverrideEnterKeyPlugin,
+} from './plugins';
 
 function Placeholder({ placeholder }: { placeholder?: string }) {
   return <div className="editor-placeholder">{placeholder || ''}</div>;
@@ -74,7 +79,7 @@ function editorOnChange(
             // remove tag an leave only the text link
             const linkTextNode = document.createElement('span');
             linkTextNode.innerText = node.getAttribute('href') || '';
-            node.replaceWith(linkTextNode)
+            node.replaceWith(linkTextNode);
           }
         }
       }
@@ -102,6 +107,15 @@ export interface EditorProps {
   editMode: boolean;
   handleEditMode: (editMode: boolean) => void;
   placeholder?: string;
+  toolbarPlacement?: 'top' | 'bottom';
+  embeddedToolbar?: boolean;
+  hideUndoButtons?: boolean;
+  borderless?: boolean;
+  hideEditButton?: boolean;
+  hideEmojis?: boolean;
+  selectorsToIgnoreOnBlur?: Array<string>;
+  onInsertContentReady?: (content: AddContentToEditorType) => void;
+  onEnterKeyPress?: () => void;
 }
 
 export function Editor({
@@ -111,7 +125,29 @@ export function Editor({
   editMode,
   handleEditMode,
   placeholder,
+  toolbarPlacement = 'bottom',
+  embeddedToolbar,
+  hideUndoButtons,
+  borderless,
+  hideEditButton,
+  hideEmojis,
+  selectorsToIgnoreOnBlur = [],
+  onInsertContentReady,
+  onEnterKeyPress,
 }: EditorProps) {
+  const Toolbar = useMemo(
+    () => (
+      <ToolbarPlugin
+        embeddedToolbar={embeddedToolbar}
+        websiteType={websiteType}
+        hideUndoButtons={hideUndoButtons}
+        borderless={borderless}
+        hideEmojis={hideEmojis}
+      />
+    ),
+    [websiteType, embeddedToolbar, hideEditButton, borderless, hideEmojis]
+  );
+
   const isDescendant = function(parent: any, child: any) {
     let node = child.parentNode;
     while (node) {
@@ -124,12 +160,14 @@ export function Editor({
   };
 
   function handleCustomBlur(e: any) {
-    const wisipoo = document.querySelector('#wisipoo');
-    const linkInput = document.querySelector('.link-editor');
     const element = e.target as HTMLElement;
-    if (!isDescendant(wisipoo, element) && !isDescendant(linkInput, element)) {
-      handleEditMode(false);
+    const selectors = ['#wisipoo', '.link-editor', ...selectorsToIgnoreOnBlur];
+    for (const item of selectors) {
+      if (isDescendant(document.querySelector(item), element)) {
+        return;
+      }
     }
+    handleEditMode(false);
   }
 
   useEffect(() => {
@@ -152,29 +190,33 @@ export function Editor({
         onClick={() => handleEditMode(true)}
         cursor="pointer"
         position="relative"
-        border="1px solid #ccc"
         px={4}
         py={2}
         pr={12}
         mb={4}
-        rounded="md"
         alignItems="center"
+        {...(!borderless && {
+          border: '1px solid #ccc',
+          rounded: 'md',
+        })}
       >
         <Text
           dangerouslySetInnerHTML={{
             __html: initialValue || placeholder || '',
           }}
         />
-        <Icon
-          name="edit"
-          w="24px"
-          h="24px"
-          position="absolute"
-          right="0"
-          top="0"
-          my="8px"
-          mr="14px"
-        />
+        {!hideEditButton ? (
+          <Icon
+            name="edit"
+            w="24px"
+            h="24px"
+            position="absolute"
+            right="0"
+            top="0"
+            my="8px"
+            mr="14px"
+          />
+        ) : null}
       </Box>
     );
   }
@@ -183,10 +225,13 @@ export function Editor({
     <LexicalComposer initialConfig={editorConfig}>
       <div className="editor-container" id="wisipoo">
         <Box
-          border="1px solid #e1e1e1"
-          roundedTop="md"
           className="editor-inner"
+          {...(!borderless && {
+            border: '1px solid #e1e1e1',
+            roundedTop: 'md',
+          })}
         >
+          {toolbarPlacement === 'top' ? Toolbar : null}
           <RichTextPlugin
             contentEditable={<ContentEditable className="editor-input" />}
             placeholder={<Placeholder placeholder={placeholder} />}
@@ -206,8 +251,16 @@ export function Editor({
               <AutoLinkPlugin />
             </>
           )}
+          {onInsertContentReady && (
+            <InsertContentMethodPlugin
+              onInsertContentReady={onInsertContentReady}
+            />
+          )}
+          {onEnterKeyPress && (
+            <OverrideEnterKeyPlugin onEnterKeyPress={onEnterKeyPress} />
+          )}
         </Box>
-        <ToolbarPlugin editorIsActive={true} websiteType={websiteType} />
+        {toolbarPlacement === 'bottom' ? Toolbar : null}
       </div>
     </LexicalComposer>
   );
