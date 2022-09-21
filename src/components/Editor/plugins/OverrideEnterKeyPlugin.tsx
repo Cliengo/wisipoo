@@ -18,7 +18,7 @@ export function OverrideEnterKeyPlugin({
       payload => {
         const event = payload as KeyboardEvent;
         event.preventDefault();
-        if (event.ctrlKey) {
+        if (event.ctrlKey || event.shiftKey) {
           return false;
         }
         onEnterKeyPress();

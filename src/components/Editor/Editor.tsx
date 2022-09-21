@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { CSSProperties, useEffect, useMemo } from 'react';
 import ExampleTheme from './theme/default';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
@@ -25,8 +25,18 @@ import {
   OverrideEnterKeyPlugin,
 } from './plugins';
 
-function Placeholder({ placeholder }: { placeholder?: string }) {
-  return <div className="editor-placeholder">{placeholder || ''}</div>;
+function Placeholder({
+  placeholder,
+  style = {},
+}: {
+  placeholder?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <div className="editor-placeholder" style={style}>
+      {placeholder || ''}
+    </div>
+  );
 }
 
 const editorConfig = {
@@ -116,6 +126,8 @@ export interface EditorProps {
   selectorsToIgnoreOnBlur?: Array<string>;
   onInsertContentReady?: (content: AddContentToEditorType) => void;
   onEnterKeyPress?: () => void;
+  editorPlaceholderStyle?: React.CSSProperties;
+  readOnlyBoxStyle?: React.CSSProperties;
 }
 
 export function Editor({
@@ -134,17 +146,20 @@ export function Editor({
   selectorsToIgnoreOnBlur = [],
   onInsertContentReady,
   onEnterKeyPress,
+  editorPlaceholderStyle,
+  readOnlyBoxStyle = {},
 }: EditorProps) {
   const Toolbar = useMemo(
-    () => (
-      <ToolbarPlugin
-        embeddedToolbar={embeddedToolbar}
-        websiteType={websiteType}
-        hideUndoButtons={hideUndoButtons}
-        borderless={borderless}
-        hideEmojis={hideEmojis}
-      />
-    ),
+    () =>
+      !(websiteType === 'instagram' && hideEmojis) ? (
+        <ToolbarPlugin
+          embeddedToolbar={embeddedToolbar}
+          websiteType={websiteType}
+          hideUndoButtons={hideUndoButtons}
+          borderless={borderless}
+          hideEmojis={hideEmojis}
+        />
+      ) : null,
     [websiteType, embeddedToolbar, hideEditButton, borderless, hideEmojis]
   );
 
@@ -162,6 +177,14 @@ export function Editor({
   function handleCustomBlur(e: any) {
     const element = e.target as HTMLElement;
     const selectors = ['#wisipoo', '.link-editor', ...selectorsToIgnoreOnBlur];
+
+    if (
+      element.getAttribute('id') === 'editor-link-input' ||
+      element?.parentElement?.getAttribute('id') === 'editor-link-input'
+    ) {
+      return;
+    }
+
     for (const item of selectors) {
       if (isDescendant(document.querySelector(item), element)) {
         return;
@@ -185,6 +208,14 @@ export function Editor({
   }, [editMode]);
 
   if (!editMode) {
+    const getTextToShow = () => {
+      const domNode = new DOMParser().parseFromString(
+        initialValue || '',
+        'text/html'
+      );
+      return !domNode.body.innerText ? placeholder : initialValue;
+    };
+
     return (
       <Box
         onClick={() => handleEditMode(true)}
@@ -199,10 +230,11 @@ export function Editor({
           border: '1px solid #ccc',
           rounded: 'md',
         })}
+        style={{ ...readOnlyBoxStyle }}
       >
         <Text
           dangerouslySetInnerHTML={{
-            __html: initialValue || placeholder || '',
+            __html: getTextToShow() || '',
           }}
         />
         {!hideEditButton ? (
@@ -234,7 +266,12 @@ export function Editor({
           {toolbarPlacement === 'top' ? Toolbar : null}
           <RichTextPlugin
             contentEditable={<ContentEditable className="editor-input" />}
-            placeholder={<Placeholder placeholder={placeholder} />}
+            placeholder={
+              <Placeholder
+                placeholder={placeholder}
+                style={editorPlaceholderStyle}
+              />
+            }
           />
           <InitialValuePlugin value={initialValue || ''} />
           <LexicalOnChangePlugin
