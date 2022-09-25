@@ -9,9 +9,11 @@ import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
 import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeHighlightNode, CodeNode } from '@lexical/code';
 import { AutoLinkNode, LinkNode } from '@lexical/link';
+import { HashtagNode } from '@lexical/hashtag';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { OnChangePlugin as LexicalOnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { HashtagPlugin } from '@lexical/react/LexicalHashtagPlugin';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import { EditorState, LexicalEditor } from 'lexical';
 import { InitialValuePlugin } from './plugins/InitialValuePlugin';
@@ -24,6 +26,8 @@ import {
   InsertContentMethodPlugin,
   OverrideEnterKeyPlugin,
 } from './plugins';
+import { HashtagSelectorPlugin } from './plugins/HashtagSelector/HashtagSelectorPlugin';
+import { HashtagItem } from './plugins/HashtagSelector/HashtagList';
 
 function Placeholder({
   placeholder,
@@ -60,6 +64,7 @@ const editorConfig = {
     TableRowNode,
     AutoLinkNode,
     LinkNode,
+    HashtagNode,
   ],
 };
 
@@ -128,6 +133,8 @@ export interface EditorProps {
   onEnterKeyPress?: () => void;
   editorPlaceholderStyle?: React.CSSProperties;
   readOnlyBoxStyle?: React.CSSProperties;
+  onKeyInput?: () => void;
+  hashtagList?: HashtagItem[];
 }
 
 export function Editor({
@@ -148,6 +155,7 @@ export function Editor({
   onEnterKeyPress,
   editorPlaceholderStyle,
   readOnlyBoxStyle = {},
+  hashtagList,
 }: EditorProps) {
   const Toolbar = useMemo(
     () =>
@@ -252,7 +260,6 @@ export function Editor({
       </Box>
     );
   }
-
   return (
     <LexicalComposer initialConfig={editorConfig}>
       <div className="editor-container" id="wisipoo">
@@ -295,6 +302,12 @@ export function Editor({
           )}
           {onEnterKeyPress && (
             <OverrideEnterKeyPlugin onEnterKeyPress={onEnterKeyPress} />
+          )}
+          {hashtagList && (
+            <>
+              <HashtagPlugin />
+              <HashtagSelectorPlugin hashtagList={hashtagList} />
+            </>
           )}
         </Box>
         {toolbarPlacement === 'bottom' ? Toolbar : null}
