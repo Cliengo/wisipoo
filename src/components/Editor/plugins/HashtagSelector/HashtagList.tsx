@@ -28,12 +28,14 @@ const listContainerStyles = {
   overflow: 'auto',
 };
 
+export const HASHTAG_SELECTOR_PLUGIN_BUTTON_CLASS =
+  'hashtag-selector-plugin-button';
+
 export const HashtagList = ({
   list,
   onItemClick,
   currentHashtag,
 }: HashtagListProps) => {
-  console.log(currentHashtag);
   const itemsElements = useMemo(
     () =>
       list
@@ -42,6 +44,7 @@ export const HashtagList = ({
         )
         .map((item, index) => (
           <MenuItem
+            className={HASHTAG_SELECTOR_PLUGIN_BUTTON_CLASS}
             key={index}
             onClick={onItemClick.bind(null, item)}
             height={`${currentHashtag}px`}
@@ -51,7 +54,7 @@ export const HashtagList = ({
         )),
     [list, currentHashtag]
   );
-  console.log(itemsElements);
+
   const listBottom = useMemo(() => {
     const value =
       itemsElements && itemsElements.length > 1

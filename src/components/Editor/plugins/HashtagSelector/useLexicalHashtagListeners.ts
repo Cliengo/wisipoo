@@ -9,7 +9,8 @@ import { HashtagItem } from '../HashtagSelector/HashtagList';
 import { $generateNodesFromDOM } from '@lexical/html';
 
 export const useLexicalHashtagListeners = (
-  selectorElementRef: React.RefObject<HTMLDivElement | null>
+  selectorElementRef: React.RefObject<HTMLDivElement | null>,
+  parentRef: React.RefObject<HTMLElement | null>
 ): [string | null, (hashtag: HashtagItem) => void] => {
   const [selectedHashtagValue, setSelectedHashtagValue] = useState<
     string | null
@@ -19,6 +20,29 @@ export const useLexicalHashtagListeners = (
   );
 
   const [editor] = useLexicalComposerContext();
+
+  const scrollToBottom = () => {
+    debugger;
+    const scrollElement = parentRef.current;
+
+    const selection = $getSelection() as RangeSelection;
+
+    const anchorElement = editor.getElementByKey(selection.anchor.key);
+
+    if (anchorElement === null || !scrollElement) {
+      return;
+    }
+
+    const scrollRect = scrollElement.getBoundingClientRect();
+    const rect = anchorElement.getBoundingClientRect();
+
+    if (rect.bottom > scrollRect.bottom) {
+      anchorElement.scrollIntoView(false);
+    } else if (rect.top < scrollRect.top) {
+      anchorElement.scrollIntoView();
+    }
+  };
+
   const updateSelectorPosition = useCallback(() => {
     editor.update(() => {
       const selection = $getSelection();
@@ -57,18 +81,24 @@ export const useLexicalHashtagListeners = (
   }, [editor]);
 
   const replaceHashtagWithContent = (hashtag: HashtagItem) => {
-    editor.update(() => {
-      const selection = $getSelection() as RangeSelection;
-      if (
-        selection &&
-        selection.getNodes()[0].getKey() === selectedHashtagKey
-      ) {
-        selection?.getNodes()[0].remove();
-        const dom = new DOMParser().parseFromString(hashtag.body, 'text/html');
-        const nodesToInsert = $generateNodesFromDOM(editor, dom);
-        selection.insertNodes(nodesToInsert);
-      }
-    });
+    editor.update(
+      () => {
+        const selection = $getSelection() as RangeSelection;
+        if (
+          selection &&
+          selection.getNodes()[0].getKey() === selectedHashtagKey
+        ) {
+          selection?.getNodes()[0].remove();
+          const dom = new DOMParser().parseFromString(
+            hashtag.body,
+            'text/html'
+          );
+          const nodesToInsert = $generateNodesFromDOM(editor, dom);
+          selection.insertNodes(nodesToInsert);
+        }
+      },
+      { tag: 'hashtagNodesInserted' }
+    );
   };
 
   const setNewHashtag = (key: string) => {
@@ -99,16 +129,18 @@ export const useLexicalHashtagListeners = (
           }
         }
       }),
-      editor.registerUpdateListener(({ editorState }) => {
+      editor.registerUpdateListener(({ editorState, tags }) => {
         editorState.read(() => {
           const selector = $getSelection() as RangeSelection;
           const selectedNode = getSelectedNode(selector);
-          console.log(selectedNode.getTextContent().trim());
           if (
             selectedHashtagKey &&
             selectedNode.getKey() !== selectedHashtagKey
           ) {
             setSelectedHashtagKey(null);
+          }
+          if (Array.from(tags).includes('hashtagNodesInserted')) {
+            scrollToBottom();
           }
         });
       }),

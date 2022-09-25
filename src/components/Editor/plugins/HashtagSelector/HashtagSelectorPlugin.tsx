@@ -5,16 +5,18 @@ import { useLexicalHashtagListeners } from './useLexicalHashtagListeners';
 
 interface HashtagSelectorPluginProps {
   hashtagList: HashtagItem[];
+  parentRef: React.RefObject<HTMLElement | null>;
 }
 
 export function HashtagSelectorPlugin({
   hashtagList,
+  parentRef,
 }: HashtagSelectorPluginProps) {
   const selectorElementRef = useRef<HTMLDivElement | null>(null);
   const [
     currentHashtag,
     replaceHashtagWithContent,
-  ] = useLexicalHashtagListeners(selectorElementRef);
+  ] = useLexicalHashtagListeners(selectorElementRef, parentRef);
   return (
     <Box ref={selectorElementRef} position="absolute">
       <HashtagList

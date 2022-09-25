@@ -27,7 +27,10 @@ import {
   OverrideEnterKeyPlugin,
 } from './plugins';
 import { HashtagSelectorPlugin } from './plugins/HashtagSelector/HashtagSelectorPlugin';
-import { HashtagItem } from './plugins/HashtagSelector/HashtagList';
+import {
+  HashtagItem,
+  HASHTAG_SELECTOR_PLUGIN_BUTTON_CLASS,
+} from './plugins/HashtagSelector/HashtagList';
 
 function Placeholder({
   placeholder,
@@ -135,6 +138,7 @@ export interface EditorProps {
   readOnlyBoxStyle?: React.CSSProperties;
   onKeyInput?: () => void;
   hashtagList?: HashtagItem[];
+  parentRef?: React.RefObject<HTMLElement | null>;
 }
 
 export function Editor({
@@ -156,6 +160,7 @@ export function Editor({
   editorPlaceholderStyle,
   readOnlyBoxStyle = {},
   hashtagList,
+  parentRef,
 }: EditorProps) {
   const Toolbar = useMemo(
     () =>
@@ -185,10 +190,13 @@ export function Editor({
   function handleCustomBlur(e: any) {
     const element = e.target as HTMLElement;
     const selectors = ['#wisipoo', '.link-editor', ...selectorsToIgnoreOnBlur];
-
     if (
       element.getAttribute('id') === 'editor-link-input' ||
-      element?.parentElement?.getAttribute('id') === 'editor-link-input'
+      element?.parentElement?.getAttribute('id') === 'editor-link-input' ||
+      element
+        .getAttribute('class')
+        ?.split(' ')
+        .includes(HASHTAG_SELECTOR_PLUGIN_BUTTON_CLASS)
     ) {
       return;
     }
@@ -198,6 +206,7 @@ export function Editor({
         return;
       }
     }
+
     handleEditMode(false);
   }
 
@@ -260,6 +269,7 @@ export function Editor({
       </Box>
     );
   }
+
   return (
     <LexicalComposer initialConfig={editorConfig}>
       <div className="editor-container" id="wisipoo">
@@ -303,10 +313,13 @@ export function Editor({
           {onEnterKeyPress && (
             <OverrideEnterKeyPlugin onEnterKeyPress={onEnterKeyPress} />
           )}
-          {hashtagList && (
+          {hashtagList && parentRef && (
             <>
               <HashtagPlugin />
-              <HashtagSelectorPlugin hashtagList={hashtagList} />
+              <HashtagSelectorPlugin
+                hashtagList={hashtagList}
+                parentRef={parentRef}
+              />
             </>
           )}
         </Box>
