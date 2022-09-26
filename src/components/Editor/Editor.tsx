@@ -31,6 +31,7 @@ import {
   HashtagItem,
   HASHTAG_SELECTOR_PLUGIN_BUTTON_CLASS,
 } from './plugins/HashtagSelector/HashtagList';
+import { ListPositionOffset } from './plugins/HashtagSelector/utils';
 
 function Placeholder({
   placeholder,
@@ -139,6 +140,7 @@ export interface EditorProps {
   onKeyInput?: () => void;
   hashtagList?: HashtagItem[];
   parentRef?: React.RefObject<HTMLElement | null>;
+  hashtagListOffset?: ListPositionOffset;
 }
 
 export function Editor({
@@ -161,6 +163,7 @@ export function Editor({
   readOnlyBoxStyle = {},
   hashtagList,
   parentRef,
+  hashtagListOffset,
 }: EditorProps) {
   const Toolbar = useMemo(
     () =>
@@ -313,12 +316,13 @@ export function Editor({
           {onEnterKeyPress && (
             <OverrideEnterKeyPlugin onEnterKeyPress={onEnterKeyPress} />
           )}
-          {hashtagList && parentRef && (
+          {hashtagList && (
             <>
               <HashtagPlugin />
               <HashtagSelectorPlugin
                 hashtagList={hashtagList}
                 parentRef={parentRef}
+                listOffset={hashtagListOffset}
               />
             </>
           )}

@@ -19,13 +19,40 @@ export function getSelectedNode(
   }
 }
 
-export function setSelectorPosition(
+export interface ListPositionOffset {
+  top?: number;
+  left?: number;
+}
+
+export function setListPosition(
   element: HTMLElement,
   rect: DOMRect,
-  rootElementRect: DOMRect
+  rootElementRect: DOMRect,
+  offset?: ListPositionOffset
 ): void {
-  let top = rect.top - rootElementRect.top - 35;
-  let left = rect.left - rootElementRect.left - 16;
+  let top =
+    rect.top - rootElementRect.top + (offset && offset.top ? offset.top : 0);
+  let left =
+    rect.left -
+    rootElementRect.left +
+    (offset && offset.left ? offset.left : 0);
   element.style.top = `${top}px`;
   element.style.left = `${left}px`;
+}
+
+export function isScrolledIntoParentElement(element: HTMLElement) {
+  const container = element.parentElement;
+  if (container) {
+    //Get container properties
+    let cTop = container.scrollTop;
+    let cBottom = cTop + container.clientHeight;
+
+    //Get element properties
+    let eTop = element.offsetTop;
+    let eBottom = eTop + element.clientHeight;
+
+    //Return outcome
+    return eTop >= cTop && eBottom <= cBottom;
+  }
+  return false;
 }

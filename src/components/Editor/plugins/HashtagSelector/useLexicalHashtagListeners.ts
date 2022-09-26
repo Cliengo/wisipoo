@@ -1,16 +1,27 @@
-import { $getSelection, RangeSelection } from 'lexical';
-import { HashtagNode } from '@lexical/hashtag';
-
 import { useEffect, useCallback, useState } from 'react';
-import { getSelectedNode, setSelectorPosition } from './utils';
+import {
+  $getSelection,
+  KEY_ARROW_DOWN_COMMAND,
+  KEY_ARROW_UP_COMMAND,
+  RangeSelection,
+  KEY_ENTER_COMMAND,
+} from 'lexical';
+import { HashtagNode } from '@lexical/hashtag';
+import { $generateNodesFromDOM } from '@lexical/html';
 import { mergeRegister } from '@lexical/utils';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+
+import { getSelectedNode, ListPositionOffset, setListPosition } from './utils';
 import { HashtagItem } from '../HashtagSelector/HashtagList';
-import { $generateNodesFromDOM } from '@lexical/html';
 
 export const useLexicalHashtagListeners = (
   selectorElementRef: React.RefObject<HTMLDivElement | null>,
-  parentRef: React.RefObject<HTMLElement | null>
+  onArrowDown: () => void,
+  onArrowUp: () => void,
+  onEnterKey: () => void,
+  parentRef?: React.RefObject<HTMLElement | null>,
+  listOffset?: ListPositionOffset,
+  isEmptyList?: boolean
 ): [string | null, (hashtag: HashtagItem) => void] => {
   const [selectedHashtagValue, setSelectedHashtagValue] = useState<
     string | null
@@ -22,24 +33,25 @@ export const useLexicalHashtagListeners = (
   const [editor] = useLexicalComposerContext();
 
   const scrollToBottom = () => {
-    debugger;
-    const scrollElement = parentRef.current;
+    if (parentRef) {
+      const scrollElement = parentRef.current;
 
-    const selection = $getSelection() as RangeSelection;
+      const selection = $getSelection() as RangeSelection;
 
-    const anchorElement = editor.getElementByKey(selection.anchor.key);
+      const anchorElement = editor.getElementByKey(selection.anchor.key);
 
-    if (anchorElement === null || !scrollElement) {
-      return;
-    }
+      if (anchorElement === null || !scrollElement) {
+        return;
+      }
 
-    const scrollRect = scrollElement.getBoundingClientRect();
-    const rect = anchorElement.getBoundingClientRect();
+      const scrollRect = scrollElement.getBoundingClientRect();
+      const rect = anchorElement.getBoundingClientRect();
 
-    if (rect.bottom > scrollRect.bottom) {
-      anchorElement.scrollIntoView(false);
-    } else if (rect.top < scrollRect.top) {
-      anchorElement.scrollIntoView();
+      if (rect.bottom > scrollRect.bottom) {
+        anchorElement.scrollIntoView(false);
+      } else if (rect.top < scrollRect.top) {
+        anchorElement.scrollIntoView();
+      }
     }
   };
 
@@ -75,10 +87,10 @@ export const useLexicalHashtagListeners = (
           rect = domRange.getBoundingClientRect();
         }
 
-        setSelectorPosition(selectorElement, rect, rootElementRect);
+        setListPosition(selectorElement, rect, rootElementRect, listOffset);
       }
     });
-  }, [editor]);
+  }, [editor, listOffset]);
 
   const replaceHashtagWithContent = (hashtag: HashtagItem) => {
     editor.update(
@@ -97,7 +109,7 @@ export const useLexicalHashtagListeners = (
           selection.insertNodes(nodesToInsert);
         }
       },
-      { tag: 'hashtagNodesInserted' }
+      { tag: 'nodesInserted' }
     );
   };
 
@@ -139,7 +151,7 @@ export const useLexicalHashtagListeners = (
           ) {
             setSelectedHashtagKey(null);
           }
-          if (Array.from(tags).includes('hashtagNodesInserted')) {
+          if (Array.from(tags).includes('nodesInserted')) {
             scrollToBottom();
           }
         });
@@ -157,6 +169,50 @@ export const useLexicalHashtagListeners = (
       setSelectedHashtagValue(null);
     }
   }, [selectedHashtagKey]);
+
+  useEffect(() => {
+    return mergeRegister(
+      editor.registerCommand(
+        KEY_ARROW_DOWN_COMMAND,
+        payload => {
+          if (selectedHashtagKey && !isEmptyList) {
+            const event = payload as KeyboardEvent;
+            event.preventDefault();
+            onArrowDown();
+            return true;
+          }
+          return false;
+        },
+        4
+      ),
+      editor.registerCommand(
+        KEY_ARROW_UP_COMMAND,
+        payload => {
+          if (selectedHashtagKey && !isEmptyList) {
+            const event = payload as KeyboardEvent;
+            event.preventDefault();
+            onArrowUp();
+            return true;
+          }
+          return false;
+        },
+        4
+      ),
+      editor.registerCommand(
+        KEY_ENTER_COMMAND,
+        payload => {
+          if (selectedHashtagKey && !isEmptyList) {
+            const event = payload as KeyboardEvent;
+            event.preventDefault();
+            onEnterKey();
+            return true;
+          }
+          return false;
+        },
+        4
+      )
+    );
+  }, [onArrowDown, onArrowUp, onEnterKey, selectedHashtagKey, isEmptyList]);
 
   return [selectedHashtagValue, replaceHashtagWithContent];
 };
