@@ -132,6 +132,7 @@ export interface EditorProps {
   borderless?: boolean;
   hideEditButton?: boolean;
   hideEmojis?: boolean;
+  hideLink?: boolean;
   selectorsToIgnoreOnBlur?: Array<string>;
   onInsertContentReady?: (content: AddContentToEditorType) => void;
   onEnterKeyPress?: () => void;
@@ -156,6 +157,7 @@ export function Editor({
   borderless,
   hideEditButton,
   hideEmojis,
+  hideLink,
   selectorsToIgnoreOnBlur = [],
   onInsertContentReady,
   onEnterKeyPress,
@@ -174,9 +176,17 @@ export function Editor({
           hideUndoButtons={hideUndoButtons}
           borderless={borderless}
           hideEmojis={hideEmojis}
+          hideLink={hideLink}
         />
       ) : null,
-    [websiteType, embeddedToolbar, hideEditButton, borderless, hideEmojis]
+    [
+      websiteType,
+      embeddedToolbar,
+      hideEditButton,
+      borderless,
+      hideEmojis,
+      hideLink,
+    ]
   );
 
   const isDescendant = function(parent: any, child: any) {
@@ -302,7 +312,7 @@ export function Editor({
           />
           <HistoryPlugin />
           <ListPlugin />
-          {websiteType === 'website' && (
+          {!hideLink && websiteType === 'website' && (
             <>
               <LinkPlugin />
               <AutoLinkPlugin />
