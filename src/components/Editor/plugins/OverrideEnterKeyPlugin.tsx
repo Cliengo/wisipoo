@@ -24,12 +24,12 @@ export function OverrideEnterKeyPlugin({
         onEnterKeyPress();
         return true;
       },
-      4
+      3
     );
     return () => {
       listenerRef.current && listenerRef.current();
     };
-  }, [onEnterKeyPress]);
+  }, [onEnterKeyPress, editor]);
 
   return null;
 }

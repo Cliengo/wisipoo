@@ -28,7 +28,7 @@ import { getSelectedNode } from './utils/getSelectedNode';
 import { FloatingLinkEditor } from './FloatingLinkEditor.component';
 import { EmojiContainer } from './EmojiContainer.component';
 
-export default function ToolbarPlugin({ embeddedToolbar, hideUndoButtons, hideEmojis, borderless, websiteType }) {
+export default function ToolbarPlugin({ embeddedToolbar, hideUndoButtons, hideEmojis, hideLink, borderless, websiteType }) {
   const [editor] = useLexicalComposerContext();
   const toolbarRef = useRef(null);
   const [canUndo, setCanUndo] = useState(false);
@@ -220,7 +220,7 @@ export default function ToolbarPlugin({ embeddedToolbar, hideUndoButtons, hideEm
         )}
 
         {!hideEmojis && <EmojiContainer />}
-        {!isFacebook && !isInstagram && !isWhatsapp && (
+        {!hideLink && !isFacebook && !isInstagram && !isWhatsapp && (
           <>
             <ActionButton name="link" onClick={insertLink} isActive={isLink} />
             {isLink &&

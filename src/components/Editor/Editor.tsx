@@ -9,9 +9,11 @@ import { TableCellNode, TableNode, TableRowNode } from '@lexical/table';
 import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeHighlightNode, CodeNode } from '@lexical/code';
 import { AutoLinkNode, LinkNode } from '@lexical/link';
+import { HashtagNode } from '@lexical/hashtag';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { OnChangePlugin as LexicalOnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { HashtagPlugin } from '@lexical/react/LexicalHashtagPlugin';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import { EditorState, LexicalEditor } from 'lexical';
 import { InitialValuePlugin } from './plugins/InitialValuePlugin';
@@ -24,6 +26,12 @@ import {
   InsertContentMethodPlugin,
   OverrideEnterKeyPlugin,
 } from './plugins';
+import { HashtagSelectorPlugin } from './plugins/HashtagSelector/HashtagSelectorPlugin';
+import {
+  HashtagItem,
+  HASHTAG_SELECTOR_PLUGIN_BUTTON_CLASS,
+} from './plugins/HashtagSelector/HashtagList';
+import { ListPositionOffset } from './plugins/HashtagSelector/utils';
 
 function Placeholder({
   placeholder,
@@ -60,6 +68,7 @@ const editorConfig = {
     TableRowNode,
     AutoLinkNode,
     LinkNode,
+    HashtagNode,
   ],
 };
 
@@ -123,11 +132,16 @@ export interface EditorProps {
   borderless?: boolean;
   hideEditButton?: boolean;
   hideEmojis?: boolean;
+  hideLink?: boolean;
   selectorsToIgnoreOnBlur?: Array<string>;
   onInsertContentReady?: (content: AddContentToEditorType) => void;
   onEnterKeyPress?: () => void;
   editorPlaceholderStyle?: React.CSSProperties;
   readOnlyBoxStyle?: React.CSSProperties;
+  onKeyInput?: () => void;
+  hashtagList?: HashtagItem[];
+  parentRef?: React.RefObject<HTMLElement | null>;
+  hashtagListOffset?: ListPositionOffset;
 }
 
 export function Editor({
@@ -143,11 +157,15 @@ export function Editor({
   borderless,
   hideEditButton,
   hideEmojis,
+  hideLink,
   selectorsToIgnoreOnBlur = [],
   onInsertContentReady,
   onEnterKeyPress,
   editorPlaceholderStyle,
   readOnlyBoxStyle = {},
+  hashtagList,
+  parentRef,
+  hashtagListOffset,
 }: EditorProps) {
   const Toolbar = useMemo(
     () =>
@@ -158,9 +176,17 @@ export function Editor({
           hideUndoButtons={hideUndoButtons}
           borderless={borderless}
           hideEmojis={hideEmojis}
+          hideLink={hideLink}
         />
       ) : null,
-    [websiteType, embeddedToolbar, hideEditButton, borderless, hideEmojis]
+    [
+      websiteType,
+      embeddedToolbar,
+      hideEditButton,
+      borderless,
+      hideEmojis,
+      hideLink,
+    ]
   );
 
   const isDescendant = function(parent: any, child: any) {
@@ -177,10 +203,13 @@ export function Editor({
   function handleCustomBlur(e: any) {
     const element = e.target as HTMLElement;
     const selectors = ['#wisipoo', '.link-editor', ...selectorsToIgnoreOnBlur];
-
     if (
       element.getAttribute('id') === 'editor-link-input' ||
-      element?.parentElement?.getAttribute('id') === 'editor-link-input'
+      element?.parentElement?.getAttribute('id') === 'editor-link-input' ||
+      element
+        .getAttribute('class')
+        ?.split(' ')
+        .includes(HASHTAG_SELECTOR_PLUGIN_BUTTON_CLASS)
     ) {
       return;
     }
@@ -190,6 +219,7 @@ export function Editor({
         return;
       }
     }
+
     handleEditMode(false);
   }
 
@@ -282,7 +312,7 @@ export function Editor({
           />
           <HistoryPlugin />
           <ListPlugin />
-          {websiteType === 'website' && (
+          {!hideLink && websiteType === 'website' && (
             <>
               <LinkPlugin />
               <AutoLinkPlugin />
@@ -295,6 +325,16 @@ export function Editor({
           )}
           {onEnterKeyPress && (
             <OverrideEnterKeyPlugin onEnterKeyPress={onEnterKeyPress} />
+          )}
+          {hashtagList && (
+            <>
+              <HashtagPlugin />
+              <HashtagSelectorPlugin
+                hashtagList={hashtagList}
+                parentRef={parentRef}
+                listOffset={hashtagListOffset}
+              />
+            </>
           )}
         </Box>
         {toolbarPlacement === 'bottom' ? Toolbar : null}

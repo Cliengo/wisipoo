@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { $getSelection } from 'lexical';
+import { $getSelection, RangeSelection } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { $generateNodesFromDOM } from '@lexical/html';
 
 export interface AddContentToEditorType {
   (content: string): void;
@@ -16,15 +17,22 @@ export const InsertContentMethodPlugin = ({
   const [editor] = useLexicalComposerContext();
 
   const addContentToEditor: AddContentToEditorType = (content: string) => {
-    editor.update(() => {
-      const selection = $getSelection();
-      selection?.insertText(content);
-    });
+    editor.update(
+      () => {
+        const selection = $getSelection() as RangeSelection;
+
+        const dom = new DOMParser().parseFromString(content, 'text/html');
+
+        const nodes = $generateNodesFromDOM(editor, dom);
+        selection?.insertNodes(nodes);
+      },
+      { tag: 'nodesInserted' }
+    );
   };
 
   useEffect(() => {
     onInsertContentReady(addContentToEditor);
-  }, [editor, onInsertContentReady]);
+  }, [editor, onInsertContentReady, addContentToEditor]);
 
   return null;
 };
