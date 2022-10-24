@@ -142,6 +142,7 @@ export interface EditorProps {
   hashtagList?: HashtagItem[];
   parentRef?: React.RefObject<HTMLElement | null>;
   hashtagListOffset?: ListPositionOffset;
+  onHashtagSelected?: () => void;
 }
 
 export function Editor({
@@ -166,6 +167,7 @@ export function Editor({
   hashtagList,
   parentRef,
   hashtagListOffset,
+  onHashtagSelected,
 }: EditorProps) {
   const Toolbar = useMemo(
     () =>
@@ -333,6 +335,7 @@ export function Editor({
                 hashtagList={hashtagList}
                 parentRef={parentRef}
                 listOffset={hashtagListOffset}
+                onHashtagSelected={onHashtagSelected}
               />
             </>
           )}

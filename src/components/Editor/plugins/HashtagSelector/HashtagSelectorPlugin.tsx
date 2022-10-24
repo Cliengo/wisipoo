@@ -8,12 +8,14 @@ interface HashtagSelectorPluginProps {
   hashtagList: HashtagItem[];
   parentRef?: React.RefObject<HTMLElement | null>;
   listOffset?: ListPositionOffset;
+  onHashtagSelected?: () => void;
 }
 
 export function HashtagSelectorPlugin({
   hashtagList,
   parentRef,
   listOffset,
+  onHashtagSelected,
 }: HashtagSelectorPluginProps) {
   const selectorElementRef = useRef<HTMLDivElement | null>(null);
   const [
@@ -55,6 +57,7 @@ export function HashtagSelectorPlugin({
     if (preselectedHashtag) {
       replaceHashtagWithContent(preselectedHashtag);
       setPreselectedHashtag(null);
+      onHashtagSelected && onHashtagSelected();
     }
   };
 
