@@ -61,6 +61,11 @@ export function HashtagSelectorPlugin({
     }
   };
 
+  const handleItemClick = (item: HashtagItem) => {
+    replaceHashtagWithContent(item);
+    onHashtagSelected && onHashtagSelected();
+  };
+
   const handleVisibleListItemsChange = (newList: HashtagItem[]) => {
     visibleList.current = newList;
     if (preselectedHashtag && newList.indexOf(preselectedHashtag) === -1) {
@@ -93,9 +98,7 @@ export function HashtagSelectorPlugin({
     <Box ref={selectorElementRef} position="absolute" width="0px" height="0px">
       <HashtagList
         list={hashtagList}
-        onItemClick={item => {
-          replaceHashtagWithContent(item);
-        }}
+        onItemClick={handleItemClick}
         currentHashtag={currentHashtag}
         onVisibleListItemsChange={handleVisibleListItemsChange}
         selectedItem={preselectedHashtag}
