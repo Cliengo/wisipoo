@@ -5,6 +5,8 @@ import { isScrolledIntoParentElement } from './utils';
 export interface HashtagItem {
   shortcut: string;
   body: string;
+  allowedForChannel: boolean;
+  getAlternativeBody: () => string;
 }
 
 interface HashtagListProps {

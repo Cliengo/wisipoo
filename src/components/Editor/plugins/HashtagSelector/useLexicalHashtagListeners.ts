@@ -101,8 +101,11 @@ export const useLexicalHashtagListeners = (
           selection.getNodes()[0].getKey() === selectedHashtagKey
         ) {
           selection?.getNodes()[0].remove();
+          let hastagHTMLString = hashtag.allowedForChannel
+            ? hashtag.body
+            : hashtag.getAlternativeBody();
           const dom = new DOMParser().parseFromString(
-            hashtag.body,
+            hastagHTMLString,
             'text/html'
           );
           const nodesToInsert = $generateNodesFromDOM(editor, dom);
