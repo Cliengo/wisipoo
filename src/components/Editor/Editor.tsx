@@ -31,6 +31,7 @@ import {
   HASHTAG_SELECTOR_PLUGIN_BUTTON_CLASS,
 } from './plugins/HashtagSelector/HashtagList';
 import { ListPositionOffset } from './plugins/HashtagSelector/utils';
+import { MaxLengthPlugin } from './plugins/MaxLengthPlugin';
 
 function Placeholder({
   placeholder,
@@ -139,6 +140,7 @@ export interface EditorProps {
   parentRef?: React.RefObject<HTMLElement | null>;
   hashtagListOffset?: ListPositionOffset;
   onHashtagSelected?: () => void;
+  maxLength?: number;
 }
 
 export function Editor({
@@ -164,6 +166,7 @@ export function Editor({
   parentRef,
   hashtagListOffset,
   onHashtagSelected,
+  maxLength
 }: EditorProps) {
   const Toolbar = useMemo(
     () =>
@@ -309,6 +312,7 @@ export function Editor({
             ignoreInitialChange
           />
           <HistoryPlugin />
+          { maxLength && <MaxLengthPlugin maxLength={maxLength} /> }
           <ListPlugin />
           {!hideLink && websiteType === 'website' && (
             <>
