@@ -29,6 +29,7 @@ function App() {
           }}
           websiteType={websiteType}
           placeholder="Write something..."
+          maxLength={700}
         />
       </Box>
       <Box
