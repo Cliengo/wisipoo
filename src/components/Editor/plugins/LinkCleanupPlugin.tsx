@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   $getRoot,
+  $getSelection,
+  $isRangeSelection,
   $createTextNode,
   $isElementNode,
   LexicalNode,
@@ -15,11 +17,22 @@ export function LinkCleanupPlugin({ linksEnabled }: { linksEnabled: boolean }) {
     if (linksEnabled) return;
 
     editor.update(() => {
-      let didReplace = false;
+      // Check whether the current selection sits inside a LinkNode before we
+      // start replacing. Only that case requires us to re-anchor the cursor
+      // afterwards; otherwise we leave the user's caret where it was.
+      const selection = $getSelection();
+      let selectionWasInLink = false;
+      if ($isRangeSelection(selection)) {
+        let ancestor: LexicalNode | null = selection.anchor.getNode();
+        while (ancestor !== null && !$isLinkNode(ancestor)) {
+          ancestor = ancestor.getParent();
+        }
+        selectionWasInLink = ancestor !== null;
+      }
+
       const replaceLinkNodes = (node: LexicalNode) => {
         if ($isLinkNode(node)) {
           node.replace($createTextNode(node.getTextContent()));
-          didReplace = true;
           return;
         }
         if ($isElementNode(node)) {
@@ -29,11 +42,12 @@ export function LinkCleanupPlugin({ linksEnabled }: { linksEnabled: boolean }) {
       $getRoot()
         .getChildren()
         .forEach(replaceLinkNodes);
-      // Selection may have been anchored inside a removed LinkNode. Move it
-      // to the end of the root — a known-valid position. Setting selection to
-      // null instead would crash downstream listeners that read
-      // `selection.anchor` without a null-check (e.g. the hashtag plugin).
-      if (didReplace) {
+
+      // Selection was anchored inside a LinkNode we just removed — moving it
+      // to the end of the root keeps it valid. Setting selection to null
+      // would crash downstream listeners that read `selection.anchor` without
+      // a null-check (e.g. the hashtag plugin).
+      if (selectionWasInLink) {
         $getRoot().selectEnd();
       }
     });
