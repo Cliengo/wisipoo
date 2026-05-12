@@ -8,11 +8,7 @@ import {
 } from 'lexical';
 import { $isLinkNode } from '@lexical/link';
 
-export function LinkCleanupPlugin({
-  linksEnabled,
-}: {
-  linksEnabled: boolean;
-}) {
+export function LinkCleanupPlugin({ linksEnabled }: { linksEnabled: boolean }) {
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {
