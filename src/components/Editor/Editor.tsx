@@ -240,15 +240,17 @@ export function Editor({
 
   useEffect(() => {
     if (editMode) {
-      // add click event listener to body
+      // Use mousedown instead of click so drag-selections starting inside the
+      // editor don't close it when the user releases the mouse outside the
+      // editor bounds. mousedown's target is where the press began.
       setTimeout(() => {
-        document.body.addEventListener('click', handleCustomBlur);
+        document.body.addEventListener('mousedown', handleCustomBlur);
       }, 400);
     } else {
-      document.body.removeEventListener('click', handleCustomBlur);
+      document.body.removeEventListener('mousedown', handleCustomBlur);
     }
     return () => {
-      document.body.removeEventListener('click', handleCustomBlur);
+      document.body.removeEventListener('mousedown', handleCustomBlur);
     };
   }, [editMode]);
 
