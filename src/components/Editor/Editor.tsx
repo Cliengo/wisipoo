@@ -25,6 +25,7 @@ import {
   AutoLinkPlugin,
   InsertContentMethodPlugin,
   OverrideEnterKeyPlugin,
+  LinkCleanupPlugin,
 } from './plugins';
 import { HashtagSelectorPlugin } from './plugins/HashtagSelector/HashtagSelectorPlugin';
 import {
@@ -76,7 +77,7 @@ function editorOnChange(
   editorState: EditorState,
   editor: LexicalEditor,
   onChange: (html: string) => void,
-  websiteType: 'website' | 'facebook' | 'whatsapp' | 'instagram'
+  linksEnabled: boolean
 ) {
   editorState.toJSON();
   editor.update(() => {
@@ -92,7 +93,7 @@ function editorOnChange(
       // if node is anchor tag, add target blank
       if (node.tagName) {
         if (node.tagName.toLowerCase() === 'a') {
-          if (websiteType === 'website') {
+          if (linksEnabled) {
             node.setAttribute('target', '_blank');
           } else {
             // remove tag an leave only the text link
@@ -133,6 +134,14 @@ export interface EditorProps {
   hideEditButton?: boolean;
   hideEmojis?: boolean;
   hideLink?: boolean;
+  /**
+   * Allow link creation/editing regardless of channel. When omitted, links are
+   * enabled only for `websiteType === 'website'` (legacy behavior). When set
+   * to `false`, any existing LinkNodes in the editor state are converted back
+   * to plain text — useful when toggling between modes (e.g. note vs message
+   * on a channel that doesn't support links).
+   */
+  allowLinks?: boolean;
   selectorsToIgnoreOnBlur?: Array<string>;
   onInsertContentReady?: (content: AddContentToEditorType) => void;
   onEnterKeyPress?: () => void;
@@ -159,6 +168,7 @@ export function Editor({
   hideEditButton,
   hideEmojis,
   hideLink,
+  allowLinks,
   selectorsToIgnoreOnBlur = [],
   onInsertContentReady,
   onEnterKeyPress,
@@ -169,6 +179,7 @@ export function Editor({
   hashtagListOffset,
   onHashtagSelected,
 }: EditorProps) {
+  const linksEnabled = allowLinks ?? websiteType === 'website';
   const Toolbar = useMemo(
     () =>
       !(websiteType === 'instagram' && hideEmojis) ? (
@@ -179,6 +190,7 @@ export function Editor({
           borderless={borderless}
           hideEmojis={hideEmojis}
           hideLink={hideLink}
+          linksEnabled={linksEnabled}
         />
       ) : null,
     [
@@ -188,6 +200,7 @@ export function Editor({
       borderless,
       hideEmojis,
       hideLink,
+      linksEnabled,
     ]
   );
 
@@ -308,13 +321,14 @@ export function Editor({
           <InitialValuePlugin value={initialValue || ''} />
           <LexicalOnChangePlugin
             onChange={(editorState, editor) =>
-              editorOnChange(editorState, editor, onChange, websiteType)
+              editorOnChange(editorState, editor, onChange, linksEnabled)
             }
             ignoreInitialChange
           />
+          <LinkCleanupPlugin linksEnabled={linksEnabled} />
           <HistoryPlugin />
           <ListPlugin />
-          {!hideLink && websiteType === 'website' && (
+          {!hideLink && linksEnabled && (
             <>
               <LinkPlugin />
               <AutoLinkPlugin />
